@@ -32,7 +32,7 @@ class NuevaReceta : AppCompatActivity() {
 
         btnIngredienteNuevo.setOnClickListener{
             if(txtIngredientes.text.isNotEmpty()){
-                txtMostrarIngredientes.append(txtIngredientes.text.toString() + ", \n")
+                txtMostrarIngredientes.append(txtIngredientes.text.toString() + ", ")
                 txtIngredientes.setText("")
             }
         }

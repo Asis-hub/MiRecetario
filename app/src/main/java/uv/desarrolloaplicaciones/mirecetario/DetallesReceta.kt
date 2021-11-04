@@ -6,8 +6,7 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.*
-import androidx.core.text.isDigitsOnly
-import androidx.core.view.isVisible
+import androidx.appcompat.app.AlertDialog
 import com.bumptech.glide.Glide
 import kotlinx.android.synthetic.main.activity_detalles_receta.*
 import kotlinx.android.synthetic.main.activity_nueva_receta.*
@@ -120,12 +119,12 @@ class DetallesReceta: AppCompatActivity() {
 
             btnCalcularPorciones.setOnClickListener {
                 try {
-                    if (txtPorciones.text.toString().toInt() > txtCalcularPorciones.text.toString().toInt()) {
+                    if (txtPorciones.text.toString().toFloat() > txtCalcularPorciones.text.toString().toFloat()) {
                         val cantidadIngredientes = etIngredientes.text.toString()
                         val arrayIngredientes = cantidadIngredientes.split(" ").toMutableList()
                         for(element in arrayIngredientes){
                             val indice = arrayIngredientes.indexOf(element)
-                            if ( element.toIntOrNull() != null){
+                            if ( element.toFloatOrNull() != null){
                                 arrayIngredientes[indice] = arrayIngredientes[indice].replace(element, (element.toFloat()/(txtPorciones.text.toString().toFloat() / txtCalcularPorciones.text.toString().toFloat() )).toString())
                             }
                         }
@@ -182,33 +181,51 @@ class DetallesReceta: AppCompatActivity() {
             }
 
             btnEliminarReceta.setOnClickListener {
-                try{
-                    if(etReceta.text.isNotEmpty() && etIngredientes.text.isNotEmpty() && etInstrucciones.text.isNotEmpty() &&
-                        txtPorciones.text.toString().isNotEmpty()){
-                        val admin = AdminSQLite (this, "administracion", null, 1)
-                        val bd = admin.writableDatabase
-                        val cantidad = bd.delete("recetas", "codigo = '${codigo}'", null )
 
-                        bd.close()
+                val mensajeConfirmacionEliminar = AlertDialog.Builder(this)
 
-                        txtCalcularPorciones.setText("")
-                        txtPorciones.setText("")
-                        txtURLImagen.setText("")
-                        etIngredientes.setText("")
-                        etInstrucciones.setText("")
-                        etReceta.setText("")
+                mensajeConfirmacionEliminar.setTitle("Eliminación de receta")
+                mensajeConfirmacionEliminar.setMessage("¿Está seguro de eliminar la receta ${etReceta.text.toString()}?")
 
-                        if(cantidad == 1){
-                            Toast.makeText(this, "Eliminacion exitosa del producto", Toast.LENGTH_SHORT).show()
-                            val intento1 = Intent(this, MainActivity::class.java)
-                            startActivity(intento1)
+                mensajeConfirmacionEliminar.setPositiveButton(android.R.string.yes) { dialog, which ->
+                    Toast.makeText(applicationContext,
+                        android.R.string.yes, Toast.LENGTH_SHORT).show()
+                    try{
+                        if(etReceta.text.isNotEmpty() && etIngredientes.text.isNotEmpty() && etInstrucciones.text.isNotEmpty() &&
+                            txtPorciones.text.toString().isNotEmpty()){
+                            val admin = AdminSQLite (this, "administracion", null, 1)
+                            val bd = admin.writableDatabase
+                            val cantidad = bd.delete("recetas", "codigo = '${codigo}'", null )
+
+                            bd.close()
+
+                            txtCalcularPorciones.setText("")
+                            txtPorciones.setText("")
+                            txtURLImagen.setText("")
+                            etIngredientes.setText("")
+                            etInstrucciones.setText("")
+                            etReceta.setText("")
+
+                            if(cantidad == 1){
+                                Toast.makeText(this, "Eliminacion exitosa del producto", Toast.LENGTH_SHORT).show()
+                                val intento1 = Intent(this, MainActivity::class.java)
+                                startActivity(intento1)
+                            }
+                            else
+                                Toast.makeText(this, "No se encontró el elemento", Toast.LENGTH_SHORT).show()
                         }
-                        else
-                            Toast.makeText(this, "No se encontró el elemento", Toast.LENGTH_SHORT).show()
+                    }catch (ex : Exception){
+                        ex.printStackTrace()
                     }
-                }catch (ex : Exception){
-                    ex.printStackTrace()
                 }
+
+                mensajeConfirmacionEliminar.setNegativeButton(android.R.string.no) { dialog, which ->
+                    Toast.makeText(applicationContext,
+                        android.R.string.no, Toast.LENGTH_SHORT).show()
+                }
+
+                mensajeConfirmacionEliminar.show()
+
             }
             btnSalirDetalles.setOnClickListener{
                     finish()
